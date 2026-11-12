@@ -24,6 +24,8 @@
   --ok: #0f766e;
   --warn-fill: #ff9f0a;     /* iOS orange, for bars only (not text) */
   --switch: #34c759;
+  --pad-bg: #d1d3d9;        /* iOS keyboard tray */
+  --key: #ffffff;
   --glass: rgba(255, 255, 255, 0.72);
   --glass-edge: rgba(255, 255, 255, 0.7);
   --glass-shadow: 0 8px 28px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -40,6 +42,7 @@
     --text: #ffffff; --text-2: rgba(235, 235, 245, 0.62); --text-3: rgba(235, 235, 245, 0.3); --line: rgba(84, 84, 88, 0.65);
     --accent: #2dd4bf; --accent-soft: rgba(45, 212, 191, 0.16); --on-accent: #032b27; --ok: #2dd4bf;
     --income: #30d158; --over: #ff6961; --warn: #ffb340; --switch: #30d158;
+    --pad-bg: #2c2c2e; --key: #5a5a5e;
     --glass: rgba(37, 37, 40, 0.72); --glass-edge: rgba(255, 255, 255, 0.12);
     --glass-shadow: 0 8px 28px rgba(0, 0, 0, 0.5); --scrim: rgba(0, 0, 0, 0.5);
     color-scheme: dark;
@@ -236,6 +239,27 @@ button.row:active { background: var(--fill-2); transition: none; }
   transition: transform 160ms var(--ease-ios);
 }
 .fab:active { transform: scale(0.9); transition: transform 80ms ease; }
+
+/* ---------- amount keypad (inside the sheet, never over it) ---------- */
+.amount-display { display: block; width: 100%; border: 0; background: none; text-align: center; font-size: 52px; line-height: 64px; font-weight: 700; letter-spacing: -0.035em; color: var(--text); padding: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.amount-display.empty { color: var(--text-3); }
+.amount-display.income { color: var(--income); }
+.amount-display.typing::after { content: ''; display: inline-block; width: 3px; height: 46px; margin-left: 3px; vertical-align: -4px; border-radius: 2px; background: var(--accent); animation: caret 1.05s steps(1) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+.pad-wrap { display: grid; grid-template-rows: 1fr; flex-shrink: 0; transition: grid-template-rows 0.34s var(--ease-ios); }
+.pad-wrap.closed { grid-template-rows: 0fr; }
+.pad-inner { overflow: hidden; min-height: 0; }
+.pad {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  padding: 8px 8px calc(env(safe-area-inset-bottom) + 8px);
+  background: var(--pad-bg); border-top: 0.5px solid var(--line);
+}
+.pad button { height: 48px; border: 0; border-radius: 12px; background: var(--key); color: var(--text); font-size: 25px; font-weight: 400; display: grid; place-items: center; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18); transition: background-color 80ms ease; }
+.pad button:active { background: var(--fill-2); transition: none; }
+.pad button:disabled { opacity: 0.3; }
+.pad .done { grid-column: 4; grid-row: 2 / span 3; height: auto; background: var(--accent); color: var(--on-accent); font-size: 17px; font-weight: 600; box-shadow: none; }
+.pad .done:active { background: var(--accent); opacity: 0.8; }
+.sheet-body.has-footer { padding-bottom: 20px; }
 
 /* ---------- sheets ---------- */
 .backdrop { position: fixed; inset: 0; background: var(--scrim); z-index: 40; animation: fade-in 0.35s ease-out both; }

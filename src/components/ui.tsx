@@ -15,6 +15,7 @@ const STROKE: Record<string, ReactNode> = {
   close: <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />,
   check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
   filter: <path d="M4 6h16M7 12h10M10 18h4" />,
+  delete: <><path d="M9 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6-7z" /><path d="m12.5 9.5 5 5M17.5 9.5l-5 5" /></>,
 };
 const FILLED: Record<string, ReactNode> = {
   house: <path d="M11.3 3.27a1.1 1.1 0 0 1 1.4 0l8.4 6.9a.9.9 0 0 1-.57 1.6H19V19.5a1.5 1.5 0 0 1-1.5 1.5H15v-5.25a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1V21H6.5A1.5 1.5 0 0 1 5 19.5v-7.73H3.47a.9.9 0 0 1-.57-1.6z" />,
@@ -67,8 +68,10 @@ const rubberband = (x: number, dim: number, c = 0.55) => (x * dim * c) / (dim + 
  * (Cancel, Done, saving, Escape): on unmount a copy of the sheet slides out from wherever it was.
  * Drag the grabber area down to dismiss; a flick counts by its projected landing point.
  */
-export function Sheet({ title, onClose, children, onDone, doneLabel = 'Save' }: {
+export function Sheet({ title, onClose, children, onDone, doneLabel = 'Save', footer }: {
   title: string; onClose: () => void; children: ReactNode; onDone?: () => void; doneLabel?: string;
+  /** Pinned under the scrolling body, e.g. the amount keypad. */
+  footer?: ReactNode;
 }) {
   const sheet = useRef<HTMLDivElement>(null);
   const backdrop = useRef<HTMLDivElement>(null);
@@ -143,7 +146,8 @@ export function Sheet({ title, onClose, children, onDone, doneLabel = 'Save' }: 
             ? <button className="round prominent" aria-label={doneLabel} onClick={onDone}><Icon name="check" size={20} stroke={2.6} /></button>
             : <span className="round spacer" aria-hidden />}
         </div>
-        <div className="sheet-body">{children}</div>
+        <div className={`sheet-body${footer ? ' has-footer' : ''}`}>{children}</div>
+        {footer}
       </div>
     </>
   );
@@ -233,3 +237,59 @@ export function CategoryGrid({ kind, value, onChange }: { kind: 'expense' | 'inc
 
 export const EMOJIS = ['🏠', '🛒', '🍽️', '☕', '🚗', '⛽', '🚌', '💡', '💧', '📱', '💊', '🏥', '🛍️', '👕', '🎬', '🎮', '🔁', '📚', '🎓', '💇', '✈️', '🏨', '🎁', '❤️', '💳', '🐷', '📦', '👶', '🐶', '🏋️', '🔧', '🧾', '💼', '💻', '🎉', '📈', '➕', '💰', '🏦', '🪙', '🚕', '🍔', '🍺', '🎵', '⚽', '🕌', '🧴', '🧹'];
 export const COLORS = ['#6366f1', '#22c55e', '#f97316', '#0ea5e9', '#eab308', '#14b8a6', '#ef4444', '#ec4899', '#a855f7', '#3b82f6', '#64748b', '#10b981', '#d946ef', '#84cc16'];
+
+const KEYS = ['1', '2', '3', 'back', '4', '5', '6', 'done', '7', '8', '9', '.', '0'];
+
+/** Type a digit, "." or backspace into an amount string, respecting the currency's decimals. */
+export function amountKey(text: string, key: string, decimals: number): string {
+  if (key === 'back') return text.slice(0, -1);
+  if (key === '.') return decimals === 0 || text.includes('.') ? text : (text || '0') + '.';
+  const [int, frac] = text.split('.');
+  if (frac !== undefined) return frac.length >= decimals ? text : text + key;
+  if (int.length >= 9) return text;
+  return int === '0' ? key : text + key;
+}
+
+/** "1234.5" → "1,234.5" for display while typing. */
+export function groupDigits(text: string): string {
+  const [int, frac] = text.split('.');
+  const g = (int || '0').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return frac !== undefined ? `${g}.${frac}` : g;
+}
+
+/**
+ * Number pad that lives inside the sheet, so it never covers what's below the amount the way the
+ * system keyboard does. Collapses smoothly when `open` turns false.
+ */
+export function AmountPad({ open, value, decimals, onChange, onClose }: {
+  open: boolean; value: string; decimals: number; onChange: (v: string) => void; onClose: () => void;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const k = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+      if (el.closest('input, textarea, select')) return;
+      if (/^\d$/.test(e.key) || e.key === '.' || e.key === ',') { e.preventDefault(); onChange(amountKey(value, e.key === ',' ? '.' : e.key, decimals)); }
+      else if (e.key === 'Backspace') { e.preventDefault(); onChange(amountKey(value, 'back', decimals)); }
+      else if (e.key === 'Enter') onClose();
+    };
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, [open, value, decimals, onChange, onClose]);
+
+  return (
+    <div className={`pad-wrap${open ? '' : ' closed'}`} aria-hidden={!open}>
+      <div className="pad-inner">
+        <div className="pad">
+          {KEYS.map((k) => k === 'done'
+            ? <button key={k} type="button" className="done" tabIndex={open ? 0 : -1} onClick={onClose}>Done</button>
+            : <button key={k} type="button" tabIndex={open ? 0 : -1} aria-label={k === 'back' ? 'Delete' : k === '.' ? 'Decimal point' : k}
+                disabled={k === '.' && decimals === 0}
+                onClick={() => onChange(amountKey(value, k, decimals))}>
+                {k === 'back' ? <Icon name="delete" size={24} stroke={1.9} /> : k}
+              </button>)}
+        </div>
+      </div>
+    </div>
+  );
+}

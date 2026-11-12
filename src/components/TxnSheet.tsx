@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { db } from '../db/schema';
 import type { Txn, TxnType } from '../db/types';
 import { useData } from '../hooks/useData';
 import { useUI } from '../hooks/useUI';
-import { CURRENCIES, convert, format, parseAmount, toInput, type Currency } from '../lib/money';
+import { CURRENCIES, DECIMALS, convert, format, parseAmount, toInput, type Currency } from '../lib/money';
 import { todayISO } from '../lib/dates';
-import { CategoryGrid, Field, Seg, Sheet } from './ui';
+import { AmountPad, CategoryGrid, Field, Seg, Sheet, groupDigits } from './ui';
 
 interface SplitRow { categoryId?: number; text: string }
 
@@ -32,6 +32,17 @@ export function TxnSheet({ initial, onClose }: { initial?: Partial<Txn>; onClose
   const [note, setNote] = useState(initial?.note ?? '');
   const [tagsText, setTagsText] = useState((initial?.tags ?? []).join(' '));
   const [error, setError] = useState('');
+  // The in-sheet keypad replaces the system keyboard for the amount, so categories stay visible.
+  const [padOpen, setPadOpen] = useState(!editing);
+  const closePad = useCallback(() => setPadOpen(false), []);
+  function openPad() {
+    (document.activeElement as HTMLElement | null)?.blur();
+    setPadOpen(true);
+  }
+  function pickCategory(id: number) {
+    setCategoryId(id);
+    setPadOpen(false);
+  }
 
   const amount = parseAmount(amountText, currency) ?? 0;
   const toAcc = toAccountId ? acc.get(toAccountId) : undefined;
@@ -88,15 +99,19 @@ export function TxnSheet({ initial, onClose }: { initial?: Partial<Txn>; onClose
 
   const title = editing ? 'Edit' : 'New';
   return (
-    <Sheet title={`${title} ${type}`} onClose={onClose} onDone={save} doneLabel={editing ? 'Save' : 'Add'}>
+    <Sheet title={`${title} ${type}`} onClose={onClose} onDone={save} doneLabel={editing ? 'Save' : 'Add'}
+      footer={<AmountPad open={padOpen} value={amountText} decimals={DECIMALS[currency]} onChange={setAmountText} onClose={closePad} />}>
+      <div onFocusCapture={(e) => { if ((e.target as HTMLElement).matches('input, select, textarea')) setPadOpen(false); }}>
       <Seg value={type} className={type} onChange={(v) => { setType(v); setCategoryId(undefined); }}
         options={[['expense', 'Expense'], ['income', 'Income'], ['transfer', 'Transfer']]} />
 
       <div className="amount-box">
-        <input className={type} inputMode="decimal" placeholder="0" value={amountText} autoFocus={!editing}
-          onChange={(e) => setAmountText(e.target.value)} aria-label="Amount" />
+        <button type="button" className={`amount-display num ${type}${amountText ? '' : ' empty'}${padOpen ? ' typing' : ''}`}
+          onClick={openPad} aria-label={`Amount ${amountText || '0'} ${currency}. Tap to edit`}>
+          {amountText ? groupDigits(amountText) : '0'}
+        </button>
         <div className="chips" style={{ justifyContent: 'center' }}>
-          {CURRENCIES.map((c) => <button key={c} type="button" className={`chip${c === currency ? ' on' : ''}`} onClick={() => setCurrency(c)}>{c}</button>)}
+          {CURRENCIES.map((c) => <button key={c} type="button" className={`chip${c === currency ? ' on' : ''}`} onClick={() => { setCurrency(c); setAmountText((t) => toInput(parseAmount(t, c) ?? 0, c)); }}>{c}</button>)}
         </div>
       </div>
 
@@ -106,7 +121,7 @@ export function TxnSheet({ initial, onClose }: { initial?: Partial<Txn>; onClose
             <span>Category</span>
             <button type="button" onClick={() => setSplitOn(!splitOn)}>{splitOn ? 'Single category' : 'Split'}</button>
           </div>
-          {!splitOn ? <CategoryGrid kind={type} value={categoryId} onChange={setCategoryId} /> : (
+          {!splitOn ? <CategoryGrid kind={type} value={categoryId} onChange={pickCategory} /> : (
             <div className="list form">
               {splits.map((r, i) => (
                 <div className="field" key={i}>
@@ -159,6 +174,7 @@ export function TxnSheet({ initial, onClose }: { initial?: Partial<Txn>; onClose
       {error && <p className="neg small" role="alert" style={{ margin: '12px 4px 0' }}>{error}</p>}
       <div className="btn-row">
         {editing && <button className="btn danger" onClick={remove}>Delete</button>}
+      </div>
       </div>
     </Sheet>
   );

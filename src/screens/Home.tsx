@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useData } from '../hooks/useData';
 import { useUI } from '../hooks/useUI';
 import { postNext, skipNext } from '../db/actions';
-import { Badge, Bar, Empty, Money, TxnRow } from '../components/ui';
+import { Badge, Bar, BigMoney, Empty, Money, TopBar, TxnRow } from '../components/ui';
 import { addDays, dayLabel, monthLabel, thisMonth, todayISO, daysBetween } from '../lib/dates';
 import { byCategory, inMonth, netWorth, totals } from '../lib/stats';
 import { occurrencesUntil } from '../lib/recurring';
@@ -39,7 +39,7 @@ export function Home() {
 
   return (
     <>
-      <div className="topbar"><h1>{monthLabel(month)}</h1></div>
+      <TopBar title={monthLabel(month)} />
 
       {needsBackup && (
         <div className="banner">
@@ -52,7 +52,7 @@ export function Home() {
         {budgeted.length > 0 ? (
           <>
             <div className="label">Left to spend this month</div>
-            <div className={`big num ${left < 0 ? 'neg' : ''}`}><Money v={left} /></div>
+            <BigMoney v={left} className={left < 0 ? 'neg' : ''} />
             <Bar spent={spentBudgeted} available={avail} />
             <div className="small muted" style={{ marginTop: 6 }}>
               {left > 0 && daysLeft > 0 ? `About ${format(Math.floor(left / daysLeft))} a day for ${daysLeft} more day${daysLeft > 1 ? 's' : ''}` : left < 0 ? 'Over budget this month' : ''}
@@ -61,7 +61,7 @@ export function Home() {
         ) : (
           <>
             <div className="label">Net this month</div>
-            <div className={`big num ${t.net < 0 ? 'neg' : ''}`}><Money v={t.net} sign /></div>
+            <BigMoney v={t.net} sign className={t.net < 0 ? 'neg' : ''} />
           </>
         )}
         <div className="grid2" style={{ marginTop: 12 }}>
@@ -115,7 +115,7 @@ export function Home() {
               <div key={`${r.id}-${date}`} className="row">
                 <Badge c={r.categoryId ? cat.get(r.categoryId) : undefined} />
                 <div className="grow"><div className="title">{r.name}</div><div className="sub">{dayLabel(date)}{r.autoPost ? ' · auto' : ''}</div></div>
-                <div className="end"><Money v={r.type === 'income' ? r.amount : -r.amount} c={r.currency} sign={r.type === 'income'} className={r.type === 'income' ? 'pos' : ''} /></div>
+                <div className="end"><Money v={r.amount} c={r.currency} sign={r.type === 'income'} className={r.type === 'income' ? 'pos' : ''} /></div>
               </div>
             ))}
           </div>

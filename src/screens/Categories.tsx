@@ -52,7 +52,7 @@ function CategorySheet({ c, onClose }: { c: Partial<Category>; onClose: () => vo
   }
 
   return (
-    <Sheet title={c.id != null ? 'Edit category' : 'New category'} onClose={onClose} action={<button className="btn ghost" onClick={save}>Save</button>}>
+    <Sheet title={c.id != null ? 'Edit category' : 'New category'} onClose={onClose} onDone={save}>
       <div style={{ display: 'grid', placeItems: 'center', margin: '8px 0 14px' }}>
         <div className="badge" style={{ width: 64, height: 64, fontSize: 34, borderRadius: 18, background: `${color}22` }}>{emoji}</div>
       </div>
@@ -70,7 +70,6 @@ function CategorySheet({ c, onClose }: { c: Partial<Category>; onClose: () => vo
       <div className="card"><div className="swatches">{COLORS.map((x) => <button key={x} aria-label={x} className={x === color ? 'on' : ''} style={{ background: x }} onClick={() => setColor(x)} />)}</div></div>
       <div className="btn-row">
         {c.id != null && <button className="btn danger" onClick={remove}>Delete</button>}
-        <button className="btn" onClick={save}>Save</button>
       </div>
     </Sheet>
   );

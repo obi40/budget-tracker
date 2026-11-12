@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { saveSetting } from '../db/schema';
-import type { Settings } from '../db/types';
 import { useData } from '../hooks/useData';
 import { useUI } from '../hooks/useUI';
 import { Field, Seg, Sheet, TopBar } from '../components/ui';
@@ -39,13 +38,6 @@ export function SettingsScreen() {
         Totals, budgets and reports are shown in JD. USD is pegged at 0.709. Update EUR now and then.{' '}
         <button className="btn ghost small" style={{ padding: 0 }} onClick={() => { setUsd(String(DEFAULT_RATES.USD)); setEur(String(DEFAULT_RATES.EUR)); saveSetting('rates', DEFAULT_RATES); }}>Reset</button>
       </p>
-
-      <div className="section-title"><span>Appearance</span></div>
-      <div className="list form">
-        <Field label="Theme">
-          <Seg value={settings.theme} onChange={(v) => saveSetting('theme', v as Settings['theme'])} options={[['system', 'Auto'], ['light', 'Light'], ['dark', 'Dark']]} />
-        </Field>
-      </div>
 
       <div className="section-title"><span>Privacy</span></div>
       <div className="list form">

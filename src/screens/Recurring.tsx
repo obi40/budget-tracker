@@ -29,7 +29,7 @@ export function RecurringScreen() {
         <div className="title">{r.name}{r.isSubscription ? ' · sub' : ''}</div>
         <div className="sub">{every(r)} · next {dayLabel(r.nextDate)}{r.autoPost ? ' · auto' : ''}</div>
       </div>
-      <div className="end"><Money v={r.type === 'income' ? r.amount : -r.amount} c={r.currency} sign={r.type === 'income'} className={r.type === 'income' ? 'pos' : ''} /></div>
+      <div className="end"><Money v={r.amount} c={r.currency} sign={r.type === 'income'} className={r.type === 'income' ? 'pos' : ''} /></div>
     </button>
   );
 
@@ -105,7 +105,7 @@ function RecurringSheet({ r, onClose }: { r: Partial<Recurring>; onClose: () => 
   }
 
   return (
-    <Sheet title={r.id != null ? 'Edit recurring' : 'New recurring'} onClose={onClose} action={<button className="btn ghost" onClick={save}>Save</button>}>
+    <Sheet title={r.id != null ? 'Edit recurring' : 'New recurring'} onClose={onClose} onDone={save}>
       <Seg value={type} className={type} onChange={(v) => { setType(v); setCategoryId(undefined); }} options={[['expense', 'Bill / expense'], ['income', 'Income'], ['transfer', 'Transfer']]} />
       <div className="list form" style={{ marginTop: 12 }}>
         <Field label="Name"><input value={name} placeholder="e.g. Rent, Netflix, Salary" onChange={(e) => setName(e.target.value)} /></Field>
@@ -135,7 +135,6 @@ function RecurringSheet({ r, onClose }: { r: Partial<Recurring>; onClose: () => 
       {type !== 'transfer' && <><div className="section-title"><span>Category</span></div><CategoryGrid kind={type} value={categoryId} onChange={setCategoryId} /></>}
       <div className="btn-row">
         {r.id != null && <button className="btn danger" onClick={remove}>Delete</button>}
-        <button className="btn" onClick={save}>Save</button>
       </div>
     </Sheet>
   );

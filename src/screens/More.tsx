@@ -13,7 +13,7 @@ const ITEMS: [Page, string, string, string][] = [
 const DATA: [Page, string, string, string][] = [
   ['import', '📥', 'Import bank CSV', 'From your bank statement'],
   ['backup', '💾', 'Backup & export', 'Save a copy, Excel export'],
-  ['settings', '⚙️', 'Settings', 'Currency rates, passcode, theme'],
+  ['settings', '⚙️', 'Settings', 'Currency rates and passcode'],
 ];
 
 export function More() {

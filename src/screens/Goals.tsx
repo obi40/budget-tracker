@@ -68,7 +68,7 @@ function GoalSheet({ g, onClose }: { g: Partial<Goal>; onClose: () => void }) {
     toast('Goal saved'); onClose();
   }
   return (
-    <Sheet title={g.id != null ? 'Edit goal' : 'New goal'} onClose={onClose} action={<button className="btn ghost" onClick={save}>Save</button>}>
+    <Sheet title={g.id != null ? 'Edit goal' : 'New goal'} onClose={onClose} onDone={save}>
       <div className="list form">
         <Field label="Name"><input value={name} placeholder="Emergency fund" onChange={(e) => setName(e.target.value)} /></Field>
         <Field label="Target (JD)"><input inputMode="decimal" placeholder="0" value={target} onChange={(e) => setTarget(e.target.value)} /></Field>
@@ -89,7 +89,6 @@ function GoalSheet({ g, onClose }: { g: Partial<Goal>; onClose: () => void }) {
       )}
       <div className="btn-row">
         {g.id != null && <button className="btn danger" onClick={async () => { if (confirm('Delete this goal?')) { await db.goals.delete(g.id!); onClose(); } }}>Delete</button>}
-        <button className="btn" onClick={save}>Save</button>
       </div>
     </Sheet>
   );
@@ -106,7 +105,7 @@ function ContributeSheet({ g, onClose }: { g: Goal; onClose: () => void }) {
     toast(withdraw ? 'Withdrawn' : `Added to ${g.name}`); onClose();
   }
   return (
-    <Sheet title={`${g.emoji} ${g.name}`} onClose={onClose} action={<button className="btn ghost" onClick={save}>Save</button>}>
+    <Sheet title={`${g.emoji} ${g.name}`} onClose={onClose} onDone={save}>
       <div className="amount-box"><input inputMode="decimal" placeholder="0" autoFocus value={text} onChange={(e) => setText(e.target.value)} /></div>
       <div className="list form"><Field label="Withdraw instead"><input type="checkbox" className="toggle" checked={withdraw} onChange={(e) => setWithdraw(e.target.checked)} /></Field></div>
       <p className="small muted" style={{ margin: '8px 4px' }}>Tip: to track where the money sits, also record a transfer to your savings account.</p>

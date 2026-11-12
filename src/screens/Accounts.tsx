@@ -3,7 +3,7 @@ import { db } from '../db/schema';
 import type { Account, AccountType } from '../db/types';
 import { useData } from '../hooks/useData';
 import { useUI } from '../hooks/useUI';
-import { Field, Money, Seg, Sheet, TopBar } from '../components/ui';
+import { BigMoney, Field, Money, Seg, Sheet, TopBar } from '../components/ui';
 import { balance, netWorth } from '../lib/stats';
 import { CURRENCIES, parseAmount, toBase, toInput, type Currency } from '../lib/money';
 
@@ -39,7 +39,7 @@ export function Accounts() {
       <TopBar title="Accounts" back right={<button className="btn ghost" onClick={() => setEdit({})}>Add</button>} />
       <div className="card hero">
         <div className="label">Net worth</div>
-        <div className={`big num ${nw < 0 ? 'neg' : ''}`}><Money v={nw} /></div>
+        <BigMoney v={nw} className={nw < 0 ? 'neg' : ''} />
         <div className="grid2">
           <div className="stat"><div className="label">Assets</div><div className="value"><Money v={assets} /></div></div>
           <div className="stat"><div className="label">Debts</div><div className="value neg"><Money v={assets - nw} /></div></div>
@@ -79,7 +79,7 @@ function AccountSheet({ a, onClose }: { a: Partial<Account>; onClose: () => void
   }
 
   return (
-    <Sheet title={a.id != null ? 'Edit account' : 'New account'} onClose={onClose} action={<button className="btn ghost" onClick={save}>Save</button>}>
+    <Sheet title={a.id != null ? 'Edit account' : 'New account'} onClose={onClose} onDone={save}>
       <div className="list form">
         <Field label="Name"><input value={name} placeholder="e.g. Arab Bank" onChange={(e) => setName(e.target.value)} /></Field>
         <Field label="Type">
@@ -96,7 +96,6 @@ function AccountSheet({ a, onClose }: { a: Partial<Account>; onClose: () => void
       </div>
       <div className="btn-row">
         {a.id != null && <button className="btn danger" onClick={remove}>Delete</button>}
-        <button className="btn" onClick={save}>Save</button>
       </div>
     </Sheet>
   );

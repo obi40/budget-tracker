@@ -41,7 +41,9 @@ export function App() {
   return <DataProvider fallback={null}><Shell /></DataProvider>;
 }
 
-const TABS: [Tab, string, string][] = [['home', 'Home', 'home'], ['txns', 'Activity', 'list'], ['budget', 'Budget', 'pie'], ['reports', 'Reports', 'chart']];
+const TABS: [Tab, string, string][] = [
+  ['home', 'Summary', 'house'], ['txns', 'Activity', 'activity'], ['budget', 'Budget', 'pie'], ['reports', 'Reports', 'bars'], ['more', 'More', 'ellipsis'],
+];
 
 function Shell() {
   const { settings } = useData();
@@ -63,12 +65,6 @@ function Shell() {
     document.addEventListener('visibilitychange', onVis);
     return () => document.removeEventListener('visibilitychange', onVis);
   }, [settings.pinHash]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (settings.theme === 'system') root.removeAttribute('data-theme');
-    else root.setAttribute('data-theme', settings.theme);
-  }, [settings.theme]);
 
   const go = useCallback((t: Tab, p: Page | null = null) => { setTab(t); setPage(p); window.scrollTo(0, 0); }, []);
   const toast = useCallback((m: string) => { setMsg(m); clearTimeout(timer.current); timer.current = window.setTimeout(() => setMsg(null), 1800); }, []);
@@ -96,18 +92,20 @@ function Shell() {
     <UICtx.Provider value={{ tab, page, go, openTxn, toast }}>
       <div className="app">
         <main className="screen" key={`${tab}/${page}`}>{screen}</main>
-        <nav className="tabbar">
-          {TABS.slice(0, 2).map(([t, label, icon]) => (
-            <button key={t} className={tab === t ? 'on' : ''} onClick={() => go(t)}><Icon name={icon} />{label}</button>
-          ))}
-          <button className="add" aria-label="Add transaction" onClick={() => openTxn()}><Icon name="plus" size={28} stroke={2.6} /></button>
-          {TABS.slice(2).map(([t, label, icon]) => (
-            <button key={t} className={tab === t ? 'on' : ''} onClick={() => go(t)}><Icon name={icon} />{label}</button>
-          ))}
-          <button className={tab === 'more' ? 'on' : ''} onClick={() => go('more')}><Icon name="more" />More</button>
+        <div className="dock-fade" aria-hidden />
+        {/* Tabs only navigate; the add action floats beside them (tab-bars.md › Best practices). */}
+        <nav className="dock" aria-label="Main">
+          <div className="tabbar glass" role="tablist">
+            {TABS.map(([t, label, icon]) => (
+              <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'on' : ''} onClick={() => go(t)}>
+                <Icon name={icon} size={25} /><span>{label}</span>
+              </button>
+            ))}
+          </div>
+          <button className="fab" aria-label="Add transaction" onClick={() => openTxn()}><Icon name="plus" size={28} stroke={2.6} /></button>
         </nav>
         {sheet && <TxnSheet initial={sheet.txn} onClose={closeSheet} />}
-        {msg && <div className="toast" role="status">{msg}</div>}
+        {msg && <div className="toast glass" role="status">{msg}</div>}
       </div>
     </UICtx.Provider>
   );

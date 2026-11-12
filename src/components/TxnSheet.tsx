@@ -88,7 +88,7 @@ export function TxnSheet({ initial, onClose }: { initial?: Partial<Txn>; onClose
 
   const title = editing ? 'Edit' : 'New';
   return (
-    <Sheet title={`${title} ${type}`} onClose={onClose} action={<button className="btn ghost" style={{ fontWeight: 700 }} onClick={save}>Save</button>}>
+    <Sheet title={`${title} ${type}`} onClose={onClose} onDone={save} doneLabel={editing ? 'Save' : 'Add'}>
       <Seg value={type} className={type} onChange={(v) => { setType(v); setCategoryId(undefined); }}
         options={[['expense', 'Expense'], ['income', 'Income'], ['transfer', 'Transfer']]} />
 
@@ -159,7 +159,6 @@ export function TxnSheet({ initial, onClose }: { initial?: Partial<Txn>; onClose
       {error && <p className="neg small" role="alert" style={{ margin: '12px 4px 0' }}>{error}</p>}
       <div className="btn-row">
         {editing && <button className="btn danger" onClick={remove}>Delete</button>}
-        <button className="btn" onClick={save}>{editing ? 'Save changes' : 'Add'}</button>
       </div>
     </Sheet>
   );

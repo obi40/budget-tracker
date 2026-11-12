@@ -69,7 +69,7 @@ function DebtSheet({ d, onClose }: { d: Partial<Debt>; onClose: () => void }) {
     toast('Debt saved'); onClose();
   }
   return (
-    <Sheet title={d.id != null ? 'Edit debt' : 'New debt'} onClose={onClose} action={<button className="btn ghost" onClick={save}>Save</button>}>
+    <Sheet title={d.id != null ? 'Edit debt' : 'New debt'} onClose={onClose} onDone={save}>
       <div className="list form">
         <Field label="Name"><input value={name} placeholder="Car loan" onChange={(e) => setName(e.target.value)} /></Field>
         <Field label="Currency"><Seg value={currency} onChange={setCurrency} options={CURRENCIES.map((c) => [c, c] as [Currency, string])} /></Field>
@@ -86,7 +86,6 @@ function DebtSheet({ d, onClose }: { d: Partial<Debt>; onClose: () => void }) {
       )}
       <div className="btn-row">
         {d.id != null && <button className="btn danger" onClick={async () => { if (confirm('Delete this debt? Recorded transactions stay.')) { await db.debts.delete(d.id!); onClose(); } }}>Delete</button>}
-        <button className="btn" onClick={save}>Save</button>
       </div>
     </Sheet>
   );
@@ -112,7 +111,7 @@ function PaySheet({ d, onClose }: { d: Debt; onClose: () => void }) {
     toast('Payment recorded'); onClose();
   }
   return (
-    <Sheet title={`Pay ${d.name}`} onClose={onClose} action={<button className="btn ghost" onClick={save}>Save</button>}>
+    <Sheet title={`Pay ${d.name}`} onClose={onClose} onDone={save}>
       <div className="amount-box"><input className="expense" inputMode="decimal" value={text} autoFocus onChange={(e) => setText(e.target.value)} /><div className="muted small">{d.currency}</div></div>
       <div className="list form">
         <Field label="Add as expense"><input type="checkbox" className="toggle" checked={record} onChange={(e) => setRecord(e.target.checked)} /></Field>

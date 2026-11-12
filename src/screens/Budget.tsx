@@ -4,7 +4,7 @@ import type { Category } from '../db/types';
 import { useData, type Data } from '../hooks/useData';
 import { useUI } from '../hooks/useUI';
 import { copyBudgets, setBudget } from '../db/actions';
-import { Badge, Bar, Field, Icon, Money, Sheet, TopBar } from '../components/ui';
+import { Badge, Bar, BigMoney, Field, Icon, Money, Sheet, TopBar } from '../components/ui';
 import { addMonths, monthLabel, thisMonth } from '../lib/dates';
 import { categoryMonth, type CategoryMonth } from '../lib/budget';
 import { inMonth, spentByMonth, totals } from '../lib/stats';
@@ -63,7 +63,7 @@ export function BudgetScreen() {
 
       <div className="card hero">
         <div className="label">Left to spend</div>
-        <div className={`big num ${left < 0 ? 'neg' : ''}`}><Money v={left} /></div>
+        <BigMoney v={left} className={left < 0 ? 'neg' : ''} />
         <Bar spent={spentInBudgeted} available={totalAvail} />
         <div className="grid2" style={{ marginTop: 14 }}>
           <div className="stat"><div className="label">Income</div><div className="value pos"><Money v={t.income} /></div></div>
@@ -137,7 +137,7 @@ function BudgetSheet({ row, month, onClose }: { row: BudgetRow; month: string; o
   }
 
   return (
-    <Sheet title={`${row.c.emoji} ${row.c.name}`} onClose={onClose} action={<button className="btn ghost" onClick={save}>Save</button>}>
+    <Sheet title={`${row.c.emoji} ${row.c.name}`} onClose={onClose} onDone={save}>
       <p className="muted small" style={{ textAlign: 'center', margin: '4px 0 0' }}>Monthly budget for {monthLabel(month)} (JD)</p>
       <div className="amount-box"><input inputMode="decimal" placeholder="0" value={text} autoFocus onChange={(e) => setText(e.target.value)} /></div>
       <div className="chips" style={{ justifyContent: 'center', marginBottom: 14 }}>
@@ -152,7 +152,6 @@ function BudgetSheet({ row, month, onClose }: { row: BudgetRow; month: string; o
       <p className="small muted" style={{ margin: '8px 4px 0' }}>With roll over on, what's left (or overspent) each month carries into the next.</p>
       <div className="btn-row">
         {row.m.budgeted > 0 && <button className="btn danger" onClick={async () => { await setBudget(month, row.c.id!, 0); onClose(); }}>Remove</button>}
-        <button className="btn" onClick={save}>Save</button>
       </div>
     </Sheet>
   );
